@@ -32,7 +32,7 @@ chmod +x /usr/bin/badvpn-udpgw
 screen -AmdS badvpn7300 badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 100
 screen -AmdS badvpn7500 badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 100
 # add dropbear login watcher script to /usr/local/bin/startup.sh
-echo -e "screen -AmdS login_watcher sh /usr/local/bin/ssh_login_watcher.sh" >> /usr/local/bin/startup.sh
+echo -e "screen -AmdS login_watcher bash /usr/local/bin/ssh_login_watcher.sh" >> /usr/local/bin/startup.sh
 
 #Download and put ssh_login_watcher.sh in /user/local/bin
 wget -O /usr/local/bin/ssh_login_watcher.sh "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/ssh_login_watcher.sh"
@@ -43,6 +43,6 @@ wget -O /usr/local/bin/ssh_session_check.sh "https://raw.githubusercontent.com/s
 chmod +x /usr/local/bin/ssh_session_check.sh
 chmod 755 /usr/local/bin/ssh_session_check.sh
 #Run ssh_session_watcher in screen
-screen -AmdS login_watcher sh /usr/local/bin/ssh_login_watcher.sh
+screen -AmdS loginwatcher bash /usr/local/bin/ssh_login_watcher.sh
 #Add job to crontab for run at startup
-(crontab -l 2>/dev/null; echo "@reboot sh /usr/local/bin/startup.sh") | crontab -
+(crontab -l 2>/dev/null; echo "@reboot bash /usr/local/bin/startup.sh") | crontab -
