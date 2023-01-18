@@ -1,6 +1,9 @@
 #! /bin/bash
 RED='\033[0;31m'
 NC='\033[0m' # No Color
+#group session limit, To define more groups limit add [groupname]=limit_count to the GROUP_LIMITS array
+declare -A GROUP_LIMITS
+GROUP_LIMITS=([twologin]=2 [threelogin]=3)
 #first arg search var second arg is array
 contains(){
 	search=$1
@@ -45,16 +48,17 @@ calculate_session_count(){
 	user_name=$1
 	
 	user_groups=($(find_user_group $user_name))
-	if contains twologin ${user_groups[@]} 
-	then
-		echo 2
-		return
-	fi
-	if contains threelogin ${user_groups[@]} 
-	then
-		echo 3
-		return
-	fi
+	
+	for user_group in ${user_groups[@]}
+	do
+		#For every groups that user contains it, find group limit
+		if contains $user_group ${!GROUP_LIMITS[@]}
+		then
+			echo "${GROUP_LIMITS[$user_group]}"
+			return
+		fi
+	done
+	
 	echo "-1"
 	
 }
@@ -70,7 +74,7 @@ PID_ARRAY=($PIDS_STRING);
 declare -A USERS
 for i in ${PID_ARRAY[@]}
 do
-	TMP_USER=$(grep "\\[$i\\]" /var/log/auth.log | awk '/Password auth succeeded for/{print $10}')
+	TMP_USER=$(grep -a "\\[$i\\]" /var/log/auth.log | awk '/Password auth succeeded for/{print $10}')
 	if [[ ! -z $TMP_USER ]]
 	then
 		#remove single cotation from user name and put to users array
