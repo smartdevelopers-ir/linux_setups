@@ -94,7 +94,7 @@ do
 		#there is more than allowed session
 		if [[ $diff -gt 0 ]]
 		then 
-			echo -e "${RED}[$(date '+%Y-%m-%d %H:%M:%S')]There is more than allowed session for $usr, killing session $PID ${NC}"
+			echo -e "${RED}[$(date '+%Y-%m-%d %H:%M:%S')] There is more than allowed session for $usr, killing session $PID ${NC}"
 			kill $PID
 			unset USERS[$PID]
 		fi
