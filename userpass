@@ -1,0 +1,11 @@
+#!/bin/bash
+read -p "Enter UserName : " user_name
+read -p "Enter Password : " pass
+read -e -p "Enter Group name [default is twologin] : " -i "twologin" group
+group=${group:-"twologin"}
+if ! getent group "$group"
+then 
+	groupadd "$group"
+fi
+useradd "$user_name" -g "$group" -M
+echo -e "$pass\n$pass" | passwd "$user_name"
