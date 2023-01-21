@@ -47,7 +47,10 @@ chmod 755 /usr/local/bin/ssh_session_check.sh
 #Run ssh_session_watcher in screen
 screen -AmdS loginwatcher bash /usr/local/bin/ssh_login_watcher.sh
 #Add job to crontab for run at startup
-(crontab -l 2>/dev/null; echo "@reboot bash /usr/local/bin/startup.sh") | crontab -
+if ! crontab -l | grep "@reboot bash /usr/local/bin/startup.sh" 
+then
+	(crontab -l 2>/dev/null; echo "@reboot bash /usr/local/bin/startup.sh") | crontab -
+fi
 
 #add userpass script for simplly add user
 wget -O /usr/local/bin/userpass "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/userpass"
