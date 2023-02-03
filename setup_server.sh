@@ -55,3 +55,5 @@ fi
 #add userpass script for simplly add user
 wget -O /usr/local/bin/userpass "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/userpass"
 chmod +x /usr/local/bin/userpass
+wget -O /usr/local/bin/acc_expire_date "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/acc_expire_date"
+chmod +x /usr/local/bin/acc_expire_date
