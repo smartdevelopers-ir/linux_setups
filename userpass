@@ -11,6 +11,6 @@ if useradd "$user_name" -g "$group" -M
 then
 	echo -e "$pass\n$pass" | passwd "$user_name"
 	let expireDay=$(date +%d -d "Today +30 days")
-	(crontab -l ; echo "0 0 $expireDay * * usermod -L $user_name") | crontab -
+	((crontab -l | grep -v -w "$user_name") ; echo "0 0 $expireDay * * usermod -L $user_name") | crontab -
 fi
 
