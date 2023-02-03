@@ -7,5 +7,10 @@ if ! getent group "$group"
 then 
 	groupadd "$group"
 fi
-useradd "$user_name" -g "$group" -M
-echo -e "$pass\n$pass" | passwd "$user_name"
+if useradd "$user_name" -g "$group" -M
+then
+	echo -e "$pass\n$pass" | passwd "$user_name"
+	let expireDay=$(date +%d -d "Today +30 days")
+	(crontab -l ; echo "0 0 $expireDay * * usermod -L $user_name") | crontab -
+fi
+
