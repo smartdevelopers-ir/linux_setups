@@ -39,7 +39,11 @@ done
 
 if [[ $USER_NAME ]]
 then
-	
+	# user exists
+	if ! id -u $USER_NAME &>/dev/null; then
+		echo "User $USER_NAME dose not exists"
+		exit 1
+	fi
 	if [[ ! $DATE ]]
 	then
 		DATE="Today"
