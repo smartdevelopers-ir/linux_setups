@@ -1,0 +1,105 @@
+#! /bin/bash
+USER_NAME=""
+DATE=""
+RE_CALC=0
+print_help(){
+	echo "-n\t\tusen name"
+	echo "-d\t\tThe date option, next expire date will calculate from given date"
+	echo "-r\t\tChange or update expire date to given date or today"
+	echo "-h\t\tto show this help"
+} 
+#n is name of user
+#d is date that must be claculated from it
+#r is option for just recalculate expire date for next priod
+while getopts ":n:d:rh" opt; do
+	case $opt in
+		n)
+			USER_NAME="$OPTARG"
+			;;
+		d)
+			DATE="$OPTARG"
+			;;
+		r)
+			RE_CALC=1
+			;;
+		h)
+			print_help
+			exit 1
+			;;
+		\?)
+			echo "Invalid option -$OPTARG" >&2
+			exit 1
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument." >&2
+			exit 1
+			;;
+	esac
+done
+
+if [[ $USER_NAME ]]
+then
+	
+	if [[ ! $DATE ]]
+	then
+		DATE="Today"
+	fi
+	expireDay=$(($(date +%_d -d "$DATE 30 days")))
+	expireMount=$(($(date +%_m -d "$DATE 30 days")))
+	expireYear=$(($(date +%_Y -d "$DATE 30 days")))
+	expireMinut=59
+	expireHour=23
+	currentDay=$(($(date +%_d)))
+	currentMount=$(($(date +%_m)))
+	currentYear=$(($(date +%_Y)))
+	currentMinute=$(($(date +%_M)))
+	currentHour=$(($(date +%_H)))
+	if [[ RE_CALC -eq 0 ]]; then
+		if [[ $currentDay -eq $expireDay  &&  $currentMount -eq $expireMount  &&  $currentYear -eq $expireYear  && $expireHour -eq $currentHour && $expireMinut -eq $currentMinute ]]
+		then
+			usermod -L $USER_NAME
+			echo "User $USER_NAME is locked"
+			expireMount=$(($(date +%_m -d "Today 30 days")))
+			expireDay=$(($(date +%_d -d "Today 30 days")))
+			echo "Next expire date was set to $(date -d 'Today 30 days' +%F)"
+		else
+			#if calculated expire date < curent date conside $Date as cretea date and calculate from it
+			
+			if [[ "$(printf %d%02d%02d%02d%02d $expireYear $expireMount $expireDay $expireHour $expireMinut)" -lt "$(printf %d%02d%02d%02d%02d $currentYear $currentMount $currentDay $currentHour $currentMinute)" ]]; then
+				diffMinute=$(( ( $(date +%s) - $(date -d "$DATE" +%s) ) / 60 ))
+				#43200 is 30 days to minute
+				remaining_minute=$(( 43200 - ($diffMinute % 43200) ))
+				
+				expireMount=$(($(date +%_m -d "Today $remaining_minute minutes")))
+				expireDay=$(($(date +%_d -d "Today $remaining_minute minutes")))
+				
+			fi
+		fi
+	else
+		if [[ $currentDay -eq $expireDay  &&  $currentMount -eq $expireMount  &&  $currentYear -eq $expireYear  && $expireHour -eq $currentHour && $expireMinut -eq $currentMinute ]]
+		then
+			echo "Calculating next expire date from Today"
+			expireMount=$(($(date +%_m -d "Today 30 days")))
+			expireDay=$(($(date +%_d -d "Today 30 days")))
+		
+			#if calculated expire date < curent date conside $Date as cretea date and calculate from it
+		elif [[ "$(printf %d%02d%02d%02d%02d $expireYear $expireMount $expireDay $expireHour $expireMinut)" -lt "$(printf %d%02d%02d%02d%02d $currentYear $currentMount $currentDay $currentHour $currentMinute)" ]]; then
+				diffMinute=$(( ( $(date +%s) - $(date -d "$DATE" +%s) ) / 60 ))
+				#43200 is 30 days to minute
+				remaining_minute=$(( 43200 - ($diffMinute % 43200) ))
+				
+				expireMount=$(($(date +%_m -d "Today $remaining_minute minutes")))
+				expireDay=$(($(date +%_d -d "Today $remaining_minute minutes")))
+				
+		else
+			expireMount=$(($(date +%_m -d "$DATE 30 days")))
+			expireDay=$(($(date +%_d -d "$DATE 30 days")))
+		fi	
+		
+	fi
+	echo "Next expire date was set to $expireMount/$expireDay"
+	((crontab -l | grep -v -w "$USER_NAME") ; echo "59 23 $expireDay $expireMount * bash /usr/local/bin/acc_expire_date -n $USER_NAME") | crontab -
+else
+	echo "You must spesify user name"
+fi
+
