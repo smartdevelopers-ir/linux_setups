@@ -16,11 +16,11 @@ do
 		echo -e "$(grep -v -w "$user" /etc/acc-expire/users)" > /etc/acc-expire/users
 		continue
 	fi
-	if [[ "$DATE" = ${EXPIRE_DATES[$user]} ]]; then
+	if [[ $(date +%s) -gt $(date +%s -d "${EXPIRE_DATES[$user]} 23:59:00 ") ]]; then
 		 
 		usermod -L "$user"
 		log "User $user was locked"
-		bash /usr/local/bin/update_acc_expire -n "$user"
+		bash /usr/local/bin/update_acc_expire -n "$user" -d ${EXPIRE_DATES[$user]}
 		
 	fi
 done
