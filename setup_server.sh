@@ -49,7 +49,11 @@ screen -AmdS loginwatcher bash /usr/local/bin/ssh_login_watcher.sh
 #Add job to crontab for run at startup
 if ! crontab -l | grep "@reboot bash /usr/local/bin/startup.sh" 
 then
-	(crontab -l 2>/dev/null; echo "@reboot bash /usr/local/bin/startup.sh") | crontab -
+	(crontab -l ; echo "@reboot bash /usr/local/bin/startup.sh") | crontab -
+fi
+if ! crontab -l | grep "59 23 * * * bash /usr/local/bin/acc_expire_check" 
+then
+	(crontab -l ; echo "59 23 * * * bash /usr/local/bin/acc_expire_check") | crontab -
 fi
 
 #add userpass script for simplly add user
