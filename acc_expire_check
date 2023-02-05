@@ -1,0 +1,29 @@
+#! /bin/bash
+#This screip will execute evry day on 23:59:00 and check for acounts expires
+#If an account is expired, Then Lock it
+log(){
+	echo "$(date +'%b %m %T') $1" >> /var/log/acc-exipre.log
+	echo "$1" 
+}
+declare -A $(awk '{print "EXPIRE_DATES["$1"]="$2}' /etc/acc-expire/users)
+DATE=$(date +%F)
+for user in "${!EXPIRE_DATES[@]}"
+do
+	#check if user exists
+	#if not remove the line contains not-exsisting user from /etc/acc-expire/users
+	if ! id -u $user &>/dev/null; then
+		log "User $user dose not exists, removing it from /etc/acc-expire/users"
+		echo -e "$(grep -v -w "$user" /etc/acc-expire/users)" > /etc/acc-expire/users
+		continue
+	fi
+	if [[ "$DATE" = ${EXPIRE_DATES[$user]} ]]; then
+		 
+		usermod -L "$user"
+		log "User $user was locked"
+		bash /usr/local/bin/update_acc_expire -n "$user"
+		
+	fi
+done
+
+
+
