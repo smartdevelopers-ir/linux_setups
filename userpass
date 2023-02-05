@@ -10,6 +10,6 @@ fi
 if useradd "$user_name" -g "$group" -M
 then
 	echo -e "$pass\n$pass" | passwd "$user_name"
-	echo "$user_name $(date +%F)" >> /etc/acc-expire/users
+	bash /usr/local/bin/update_acc_expire -n "$user_name" 
 fi
 
