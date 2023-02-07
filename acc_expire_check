@@ -2,7 +2,7 @@
 #This screip will execute evry day on 23:59:00 and check for acounts expires
 #If an account is expired, Then Lock it
 log(){
-	echo "$(date +'%b %m %T') $1" >> /var/log/acc-exipre.log
+	echo "$(date +'%b %m %T') [update_acc_expire] $1" >> /var/log/acc-expire.log
 	echo "$1" 
 }
 declare -A $(awk '{print "EXPIRE_DATES["$1"]="$2}' /etc/acc-expire/users)
