@@ -5,6 +5,7 @@ log(){
 	echo "$(date +'%b %m %T') [update_acc_expire] $1" >> /var/log/acc-expire.log
 	echo "$1" 
 }
+log "acc_axpire_check run"
 declare -A $(awk '{print "EXPIRE_DATES["$1"]="$2}' /etc/acc-expire/users)
 DATE=$(date +%F)
 for user in "${!EXPIRE_DATES[@]}"
