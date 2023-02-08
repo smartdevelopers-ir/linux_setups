@@ -57,9 +57,14 @@ then
 fi
 
 #add userpass script for simplly add user
+mkdir /etc/acc-expire
 wget -O /usr/local/bin/userpass "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/userpass"
 chmod +x /usr/local/bin/userpass
 wget -O /usr/local/bin/acc_expire_check "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/acc_expire_check"
 chmod +x /usr/local/bin/acc_expire_check
 wget -O /usr/local/bin/update_acc_expire "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/update_acc_expire"
 chmod +x /usr/local/bin/update_acc_expire
+# block IR spy aplications
+wget -O /usr/local/bin/spy_net_blocker "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/spy_net_blocker"
+chmod +x /usr/local/bin/spy_net_blocker
+bash /usr/local/bin/spy_net_blocker
