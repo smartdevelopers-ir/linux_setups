@@ -15,6 +15,7 @@ iptables -I OUTPUT -m string --string "splus" --algo bm -j REJECT #sorosh
 iptables -I OUTPUT -m string --string "adivery" --algo bm -j REJECT #sorosh
 iptables -I OUTPUT -m string --string "pegah.tech" --algo bm -j REJECT #sorosh
 iptables -I OUTPUT -m string --string "appcenter" --algo bm -j REJECT #sorosh
+iptables -I OUTPUT -m string --string "eitaa" --algo bm -j REJECT #eitaa
 iptables -I OUTPUT -m string --string "peitaa" --algo bm -j REJECT #eitaa
 iptables -I OUTPUT -m string --string "igap" --algo bm -j REJECT #igap
 iptables -I OUTPUT -m string --string "780" --algo bm -j REJECT #780
