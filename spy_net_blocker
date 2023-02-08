@@ -40,4 +40,4 @@ iptables -I OUTPUT -m string --string "tap3" --algo bm -j REJECT
 iptables -I OUTPUT -m string --string "tapsi" --algo bm -j REJECT 
 iptables -I OUTPUT -m string --string "adpdigital" --algo bm -j REJECT 
 iptables -I OUTPUT -m string --string "emb-api" --algo bm -j REJECT 
-bash /sbin/iptables-save
+/sbin/iptables-save
