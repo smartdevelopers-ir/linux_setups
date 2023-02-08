@@ -7,7 +7,7 @@ print_help(){
 	echo "-h\t\tto show this help"
 } 
 log(){
-	echo "$(date +'%b %m %T') [update_acc_expire] $1" >> /var/log/acc-expire.log
+	echo "$(date +'%b %d %T') [update_acc_expire] $1" >> /var/log/acc-expire.log
 	echo "$1" 
 }
 #n is name of user

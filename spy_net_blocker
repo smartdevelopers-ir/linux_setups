@@ -1,0 +1,43 @@
+#! /bin/bash
+iptables -I OUTPUT -m string --string "cafebazaar" --algo bm -j REJECT
+iptables -I OUTPUT -m string --string "hicloud" --algo bm -j REJECT
+iptables -I OUTPUT -m string --string "adtrace" --algo bm -j REJECT
+iptables -I OUTPUT -m string --string "irancell" --algo bm -j REJECT
+iptables -I OUTPUT -m string --string "banksepah" --algo bm -j REJECT
+iptables -I OUTPUT -m string --string "iranlms" --algo bm -j REJECT
+iptables -I OUTPUT -m string --string "iranlms" --algo bm -j REJECT
+iptables -I OUTPUT -m string --string "rubika" --algo bm -j REJECT
+iptables -I OUTPUT -m string --string "metrix" --algo bm -j REJECT
+iptables -I OUTPUT -m string --string "bale" --algo bm -j REJECT
+iptables -I OUTPUT -m string --string "bale.ai" --algo bm -j REJECT
+iptables -I OUTPUT -m string --string "tapsell" --algo bm -j REJECT #sorosh
+iptables -I OUTPUT -m string --string "splus" --algo bm -j REJECT #sorosh
+iptables -I OUTPUT -m string --string "adivery" --algo bm -j REJECT #sorosh
+iptables -I OUTPUT -m string --string "pegah.tech" --algo bm -j REJECT #sorosh
+iptables -I OUTPUT -m string --string "appcenter" --algo bm -j REJECT #sorosh
+iptables -I OUTPUT -m string --string "peitaa" --algo bm -j REJECT #eitaa
+iptables -I OUTPUT -m string --string "igap" --algo bm -j REJECT #igap
+iptables -I OUTPUT -m string --string "780" --algo bm -j REJECT #780
+iptables -I OUTPUT -m string --string "webengage" --algo bm -j REJECT #Ap
+iptables -I OUTPUT -m string --string "asanpardakht" --algo bm -j REJECT #Ap
+iptables -I OUTPUT -m string --string "divar" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "sheypoor" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "snapp" --algo bm -j REJECT #snap
+iptables -I OUTPUT -m string --string "snappfood" --algo bm -j REJECT #snap
+iptables -I OUTPUT -m string --string "zoodfood" --algo bm -j REJECT #snap
+iptables -I OUTPUT -m string --string "flurry" --algo bm -j REJECT #snap
+iptables -I OUTPUT -m string --string "adjust" --algo bm -j REJECT #snap
+iptables -I OUTPUT -m string --string "yandex" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "analytics" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "crash" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "crashlytics" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "ikepler" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "snappmaps" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "doubleclick" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "tap30" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "tap33" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "tap3" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "tapsi" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "adpdigital" --algo bm -j REJECT 
+iptables -I OUTPUT -m string --string "emb-api" --algo bm -j REJECT 
+bash /sbin/iptables-save
