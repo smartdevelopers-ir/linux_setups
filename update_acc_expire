@@ -1,10 +1,13 @@
 #! /bin/bash
 USER_NAME=""
 DATE=""
+# This is period of updating mount. for example if you want set expire date for 3 mount later from passed date, set this to 3
+PERIOD=1
 print_help(){
-	echo -e "-n\t\tusen name"
-	echo -e "-d\t\tThe date option, next expire date will calculate from given date"
-	echo -e "-h\t\tto show this help"
+	echo -e "-n\tusen name"
+	echo -e "-d\tThe date option, next expire date will calculate from given date"
+	echo -e "-p\tMount period. how many mount later do you want to set expire date?"
+	echo -e "-h\tto show this help"
 } 
 log(){
 	echo "$(date +'%b %d %T') [update_acc_expire] $1" >> /var/log/acc-expire.log
@@ -20,6 +23,9 @@ while getopts ":n:d:rh" opt; do
 			;;
 		d)
 			DATE="$OPTARG"
+			;;
+		p)
+			PERIOD="$OPTARG"
 			;;
 		h)
 			print_help
@@ -45,14 +51,14 @@ then
 	if [[ ! $DATE ]]
 	then
 		DATE="Today"
-	fi
-	diffMinute=$(( ( $(date +%s) - $(date -d "$DATE 23:59:00 30 days" +%s) ) / 60 ))
+	fi 
+	diffMinute=$(( ( $(date +%s) - $(date -d "$DATE 23:59:00 $(( 30 * $PERIOD )) days" +%s) ) / 60 ))
 	if [[ $diffMinute -gt 0 ]]; then
 		#43200 is 30 days to minute
-		remaining_minute=$(( 43200 - ($diffMinute % 43200) ))
+		remaining_minute=$(( (43200 * $PERIOD) - ($diffMinute % (43200 * $PERIOD)) ))
 		next_expire_date=$(date +%F -d "Today $remaining_minute minutes")
 	else
-		next_expire_date=$(date -d "$DATE 23:59:00 30 days" +%F)
+		next_expire_date=$(date -d "$DATE 23:59:00 $((30 * $PERIOD)) days" +%F)
 	fi
 	if grep -w $USER_NAME /etc/acc-expire/users &>/dev/null; then
 		sudo sed -i "s/.*$USER_NAME.*/$USER_NAME $next_expire_date/" /etc/acc-expire/users
