@@ -1,6 +1,7 @@
 #! /bin/bash
 sudo iptables -I OUTPUT -m string --string "cafebazaar" --algo bm -j REJECT
 sudo iptables -I OUTPUT -m string --string "hicloud" --algo bm -j REJECT
+sudo iptables -I OUTPUT -m string --string "adtrace" --algo bm -j REJECT
 sudo iptables -I OUTPUT -m string --string "irancell" --algo bm -j REJECT
 sudo iptables -I OUTPUT -m string --string "banksepah" --algo bm -j REJECT
 sudo iptables -I OUTPUT -m string --string "iranlms" --algo bm -j REJECT
@@ -34,6 +35,8 @@ sudo iptables -I OUTPUT -m string --string "crashlytics" --algo bm -j REJECT
 sudo iptables -I OUTPUT -m string --string "ikepler" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "snappmaps" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "doubleclick" --algo bm -j REJECT 
+sudo iptables -I OUTPUT -m string --string "adjust" --algo bm -j REJECT #snap
+sudo iptables -I OUTPUT -m string --string "analytics" --algo bm -j REJECT
 sudo iptables -I OUTPUT -m string --string "tap30" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "tap33" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "tap3" --algo bm -j REJECT 
