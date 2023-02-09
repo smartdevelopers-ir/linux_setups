@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 apt update
 apt upgrade -y
+timedatectl set-timezone Asia/Tehran
 apt install vim -y
 apt install inotify-tools -y
 apt install dropbear -y
@@ -27,7 +28,7 @@ fi
 touch /usr/local/bin/startup.sh
 chmod 755 /usr/local/bin/startup.sh
 chmod +x /usr/local/bin/startup.sh
-echo '#!/bin/sh' > /usr/local/bin/startup.sh
+echo '#!/bin/bash' > /usr/local/bin/startup.sh
 echo -e "screen -AmdS badvpn7300 badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 100" >> /usr/local/bin/startup.sh
 echo -e "screen -AmdS badvpn7500 badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 100" >> /usr/local/bin/startup.sh
 chmod +x /usr/bin/badvpn-udpgw
@@ -55,7 +56,7 @@ if ! crontab -l | grep "59 23 * * * bash /usr/local/bin/acc_expire_check"
 then
 	(crontab -l ; echo "59 23 * * * bash /usr/local/bin/acc_expire_check") | crontab -
 fi
-
+service cron restart
 #add userpass script for simplly add user
 mkdir /etc/acc-expire
 wget -O /usr/local/bin/userpass "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/userpass"

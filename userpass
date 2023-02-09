@@ -5,9 +5,9 @@ read -e -p "Enter Group name [default is twologin] : " -i "twologin" group
 group=${group:-"twologin"}
 if ! getent group "$group"
 then 
-	groupadd "$group"
+	sudo groupadd "$group"
 fi
-if useradd "$user_name" -g "$group" -M
+if sudo useradd "$user_name" -g "$group" -M
 then
 	echo -e "$pass\n$pass" | passwd "$user_name"
 	bash /usr/local/bin/update_acc_expire -n "$user_name" 

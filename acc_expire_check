@@ -19,7 +19,7 @@ do
 	fi
 	if [[ $(date +%s) -gt $(date +%s -d "${EXPIRE_DATES[$user]} 23:59:00 ") ]]; then
 		 
-		usermod -L "$user"
+		sudo usermod -L "$user"
 		log "User $user was locked"
 		bash /usr/local/bin/update_acc_expire -n "$user" -d ${EXPIRE_DATES[$user]}
 		
