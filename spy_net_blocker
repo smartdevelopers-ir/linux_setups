@@ -41,4 +41,4 @@ sudo iptables -I OUTPUT -m string --string "tap3" --algo bm -j REJECT
 sudo iptables -I OUTPUT -m string --string "tapsi" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "adpdigital" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "emb-api" --algo bm -j REJECT 
-/sbin/iptables-save
+sudo /sbin/iptables-save > /etc/iptables/rules.v4
