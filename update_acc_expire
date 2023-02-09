@@ -16,7 +16,7 @@ log(){
 #n is name of user
 #d is date that must be claculated from it
 #r is option for just recalculate expire date for next priod
-while getopts ":n:d:rh" opt; do
+while getopts ":n:d:p:rh" opt; do
 	case $opt in
 		n)
 			USER_NAME="$OPTARG"
