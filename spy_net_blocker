@@ -1,7 +1,6 @@
 #! /bin/bash
 sudo iptables -I OUTPUT -m string --string "cafebazaar" --algo bm -j REJECT
 sudo iptables -I OUTPUT -m string --string "hicloud" --algo bm -j REJECT
-sudo iptables -I OUTPUT -m string --string "adtrace" --algo bm -j REJECT
 sudo iptables -I OUTPUT -m string --string "irancell" --algo bm -j REJECT
 sudo iptables -I OUTPUT -m string --string "banksepah" --algo bm -j REJECT
 sudo iptables -I OUTPUT -m string --string "iranlms" --algo bm -j REJECT
@@ -18,7 +17,9 @@ sudo iptables -I OUTPUT -m string --string "appcenter" --algo bm -j REJECT #soro
 sudo iptables -I OUTPUT -m string --string "eitaa" --algo bm -j REJECT #eitaa
 sudo iptables -I OUTPUT -m string --string "peitaa" --algo bm -j REJECT #eitaa
 sudo iptables -I OUTPUT -m string --string "igap" --algo bm -j REJECT #igap
-sudo iptables -I OUTPUT -m string --string "780" --algo bm -j REJECT #780
+sudo iptables -I OUTPUT -m string --string "780.ir" --algo bm -j REJECT #780
+sudo iptables -I OUTPUT -m string --string "780.net" --algo bm -j REJECT #780
+sudo iptables -I OUTPUT -m string --string "780.com" --algo bm -j REJECT #780
 sudo iptables -I OUTPUT -m string --string "webengage" --algo bm -j REJECT #Ap
 sudo iptables -I OUTPUT -m string --string "asanpardakht" --algo bm -j REJECT #Ap
 sudo iptables -I OUTPUT -m string --string "divar" --algo bm -j REJECT 
@@ -27,9 +28,7 @@ sudo iptables -I OUTPUT -m string --string "snapp" --algo bm -j REJECT #snap
 sudo iptables -I OUTPUT -m string --string "snappfood" --algo bm -j REJECT #snap
 sudo iptables -I OUTPUT -m string --string "zoodfood" --algo bm -j REJECT #snap
 sudo iptables -I OUTPUT -m string --string "flurry" --algo bm -j REJECT #snap
-sudo iptables -I OUTPUT -m string --string "adjust" --algo bm -j REJECT #snap
 sudo iptables -I OUTPUT -m string --string "yandex" --algo bm -j REJECT 
-sudo iptables -I OUTPUT -m string --string "analytics" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "crash" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "crashlytics" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "ikepler" --algo bm -j REJECT 
