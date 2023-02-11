@@ -39,7 +39,6 @@ sudo iptables -I OUTPUT -m string --string "adjust" --algo bm -j REJECT #snap
 sudo iptables -I OUTPUT -m string --string "analytics" --algo bm -j REJECT
 sudo iptables -I OUTPUT -m string --string "tap30" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "tap33" --algo bm -j REJECT 
-sudo iptables -I OUTPUT -m string --string "tap3" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "tapsi" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "adpdigital" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "emb-api" --algo bm -j REJECT 
