@@ -57,6 +57,10 @@ if ! crontab -l | grep "59 23 * * * bash /usr/local/bin/acc_expire_check"
 then
 	(crontab -l ; echo "59 23 * * * bash /usr/local/bin/acc_expire_check") | crontab -
 fi
+if ! crontab -l | grep "59 23 * * * bash /usr/local/bin/login_watcher_running_check" 
+then
+	(crontab -l ; echo "59 23 * * * bash /usr/local/bin/login_watcher_running_check") | crontab -
+fi
 service cron restart
 #add userpass script for simplly add user
 mkdir /etc/acc-expire
@@ -70,3 +74,6 @@ chmod +x /usr/local/bin/update_acc_expire
 wget -O /usr/local/bin/spy_net_blocker "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/spy_net_blocker"
 chmod +x /usr/local/bin/spy_net_blocker
 bash /usr/local/bin/spy_net_blocker
+# login watcher runnin check
+wget -O /usr/local/bin/login_watcher_running_check "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/login_watcher_running_check"
+chmod +x /usr/local/bin/login_watcher_running_check

@@ -1,0 +1,10 @@
+#! /bin/bash
+#This screip will execute evry day on 23:59:00 and check if loginWatcher is running or not
+#If not, runs it
+if ! sudo screen -ls | grep loginwatcher 
+then
+	sudo screen -AmdS loginwatcher bash /usr/local/bin/ssh_login_watcher.sh
+fi
+
+
+
