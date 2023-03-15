@@ -3,10 +3,12 @@ USER_NAME=""
 DATE=""
 # This is period of updating mount. for example if you want set expire date for 3 mount later from passed date, set this to 3
 PERIOD=1
+EXTENSION=false
 print_help(){
 	echo -e "-n\tusen name"
 	echo -e "-d\tThe date option, next expire date will calculate from given date"
 	echo -e "-p\tMount period. how many mount later do you want to set expire date?"
+	echo -e "-e\tExpand expire date for next mount from expire date"
 	echo -e "-h\tto show this help"
 } 
 log(){
@@ -15,8 +17,9 @@ log(){
 }
 #n is name of user
 #d is date that must be claculated from it
-#r is option for just recalculate expire date for next priod
-while getopts ":n:d:p:rh" opt; do
+#e is option for just extend expire date for next priod 
+#p is priod count 
+while getopts ":n:d:p:eh" opt; do
 	case $opt in
 		n)
 			USER_NAME="$OPTARG"
@@ -30,6 +33,9 @@ while getopts ":n:d:p:rh" opt; do
 		h)
 			print_help
 			exit 1
+			;;
+		e)
+			EXTENSION=true
 			;;
 		\?)
 			echo "Invalid option -$OPTARG" >&2
@@ -48,10 +54,15 @@ then
 		echo "User $USER_NAME dose not exists"
 		exit 1
 	fi
+	if [[ "$EXTENSION" = true ]]
+	then
+		DATE=$(awk -v USER_NAME=$USER_NAME '$0 ~ USER_NAME {print $2}' /etc/acc-expire/users)
+	fi
 	if [[ ! $DATE ]]
 	then
 		DATE="Today"
 	fi 
+	
 	diffMinute=$(( ( $(date +%s) - $(date -d "$DATE 23:59:00 $(( 30 * $PERIOD )) days" +%s) ) / 60 ))
 	if [[ $diffMinute -gt 0 ]]; then
 		#43200 is 30 days to minute
