@@ -4,6 +4,10 @@
 if ! sudo screen -ls | grep loginwatcher 
 then
 	sudo screen -AmdS loginwatcher bash /usr/local/bin/ssh_login_watcher.sh
+else
+	session_number=$(sudo screen -ls | awk '/loginwatcher/ {split($1,a,"."); print a[1]}')
+	screen -XS $session_number  quit
+	sudo screen -AmdS loginwatcher bash /usr/local/bin/ssh_login_watcher.sh
 fi
 
 
