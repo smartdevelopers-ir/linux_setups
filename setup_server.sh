@@ -7,6 +7,8 @@ apt install inotify-tools -y
 apt install dropbear -y
 apt install ufw -y
 apt install iptables-persistent -y
+apt install dante-server -y
+apt install ncat -y
 wget -O /usr/local/bin/banner "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/banner.html"
 chmod 755 /usr/local/bin/banner
 sed -i -e 's/^NO_START=1$/NO_START=0/' -e 's/DROPBEAR_PORT=22/DROPBEAR_PORT=442/' -e 's#DROPBEAR_BANNER=""#DROPBEAR_BANNER="/usr/local/bin/banner"#' -e 's/^DROPBEAR_EXTRA_ARGS=$/DROPBEAR_EXTRA_ARGS="-g"/' /etc/default/dropbear
@@ -32,6 +34,7 @@ chmod +x /usr/local/bin/startup.sh
 echo '#!/bin/bash' > /usr/local/bin/startup.sh
 echo -e "screen -AmdS badvpn7300 badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 100" >> /usr/local/bin/startup.sh
 echo -e "screen -AmdS badvpn7500 badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 100" >> /usr/local/bin/startup.sh
+echo -e "screen -AmdS expire_date_reporter ncat -k -l 127.0.0.1 6161 -c 'bash /usr/local/bin/edr'" >> /usr/local/bin/startup.sh
 chmod +x /usr/bin/badvpn-udpgw
 screen -AmdS badvpn7300 badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 100
 screen -AmdS badvpn7500 badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 100
@@ -61,6 +64,7 @@ if ! crontab -l | grep "59 23 * * * bash /usr/local/bin/login_watcher_running_ch
 then
 	(crontab -l ; echo "59 23 * * * bash /usr/local/bin/login_watcher_running_check") | crontab -
 fi
+
 service cron restart
 #add userpass script for simplly add user
 mkdir /etc/acc-expire
@@ -77,3 +81,11 @@ bash /usr/local/bin/spy_net_blocker
 # login watcher runnin check
 wget -O /usr/local/bin/login_watcher_running_check "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/login_watcher_running_check"
 chmod +x /usr/local/bin/login_watcher_running_check
+# dante proxy server config
+systemctl stop danted
+wget -O /etc/danted.conf "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/danted.conf"
+systemctl start danted
+# ncat - expire date reporter
+wget -O /usr/local/bin/edr "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/expire_date_reported.sh"
+chmod +x /usr/local/bin/edr
+screen -AmdS expire_date_reporter ncat -k -l 127.0.0.1 6161 -c 'bash /usr/local/bin/edr'
