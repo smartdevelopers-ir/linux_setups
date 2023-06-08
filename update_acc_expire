@@ -56,7 +56,7 @@ then
 	fi
 	if [[ "$EXTENSION" = true ]]
 	then
-		DATE=$(awk -v USER_NAME=$USER_NAME '$0 ~ USER_NAME {print $2}' /etc/acc-expire/users)
+		DATE=$(awk -v USER_NAME=$USER_NAME '$1==USER_NAME {print $2}' /etc/acc-expire/users)
 	fi
 	if [[ ! $DATE ]]
 	then
