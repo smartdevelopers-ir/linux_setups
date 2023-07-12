@@ -29,7 +29,6 @@ sudo iptables -I OUTPUT -m string --string "snapp" --algo bm -j REJECT #snap
 sudo iptables -I OUTPUT -m string --string "snappfood" --algo bm -j REJECT #snap
 sudo iptables -I OUTPUT -m string --string "zoodfood" --algo bm -j REJECT #snap
 sudo iptables -I OUTPUT -m string --string "flurry" --algo bm -j REJECT #snap
-sudo iptables -I OUTPUT -m string --string "yandex" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "crash" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "crashlytics" --algo bm -j REJECT 
 sudo iptables -I OUTPUT -m string --string "ikepler" --algo bm -j REJECT 
