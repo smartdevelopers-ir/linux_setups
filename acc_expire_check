@@ -1,9 +1,33 @@
 #! /bin/bash
-#This screip will execute evry day on 23:59:00 and check for acounts expires
+#This screip will execute evry day on 23:59:59 and check for acounts expires
 #If an account is expired, Then Lock it
 log(){
 	echo "$(date +'%b %d %T') [update_acc_expire] $1" >> /var/log/acc-expire.log
 	echo "$1" 
+}
+kill_user_proc(){
+	username="$1"
+	PIDS_STRING=$(ps -C dropbear | grep dropbear | awk '{print $1}');
+	PID_ARRAY=($PIDS_STRING);
+	declare -A USERS
+	for i in ${PID_ARRAY[@]}
+	do
+		TMP_USER=$(grep -a "\\[$i\\]" /var/log/auth.log | awk '/Password auth succeeded for/{print $10}')
+		if [[ ! -z $TMP_USER ]]
+		then
+			#remove single cotation from user name and put to users array
+			USERS["$i"]="${TMP_USER//[^a-zA-Z0-9_]/''}"
+		fi
+		
+	done
+	for PID in ${PID_ARRAY[@]}
+	do
+		usr=${USERS[$PID]}
+		if [[ "$usr" = "$username" ]]
+		then
+			kill $PID
+		fi
+	done
 }
 log "acc_axpire_check run"
 declare -A $(awk '{print "EXPIRE_DATES["$1"]="$2}' /etc/acc-expire/users)
@@ -17,12 +41,12 @@ do
 		echo -e "$(grep -v -w "$user" /etc/acc-expire/users)" > /etc/acc-expire/users
 		continue
 	fi
-	if [[ $(date +%s) -gt $(date +%s -d "${EXPIRE_DATES[$user]} 23:59:00 ") ]]; then
+	if [[ $(date +%s) -gt $(date +%s -d "${EXPIRE_DATES[$user]} 23:59:59 ") ]]; then
 		 
 		sudo usermod -L "$user"
 		log "User $user was locked"
-		bash /usr/local/bin/update_acc_expire -n "$user" -d ${EXPIRE_DATES[$user]}
-		
+		# log out user
+		kill_user_proc $user
 	fi
 done
 
