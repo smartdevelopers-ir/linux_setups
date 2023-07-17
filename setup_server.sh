@@ -8,7 +8,7 @@ apt install dropbear -y
 apt install ufw -y
 apt install iptables-persistent -y
 apt install dante-server -y
-apt install ncat -y
+apt install openjdk-17-jre-headless -y
 wget -O /usr/local/bin/banner "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/banner.html"
 chmod 755 /usr/local/bin/banner
 read -p "Enter Dropbear port : " D_PORT
@@ -36,7 +36,7 @@ chmod +x /usr/local/bin/startup.sh
 echo '#!/bin/bash' > /usr/local/bin/startup.sh
 echo -e "screen -AmdS badvpn7300 badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 100" >> /usr/local/bin/startup.sh
 echo -e "screen -AmdS badvpn7500 badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 100" >> /usr/local/bin/startup.sh
-echo -e "screen -AmdS expire_date_reporter ncat -k -l 127.0.0.1 6161 -c 'bash /usr/local/bin/edr'" >> /usr/local/bin/startup.sh
+echo -e "screen -AmdS expire_date_reporter java -jar  /usr/local/bin/acc_expire_reporter.jar --allow 127.0.0.1,5.45.64.41 6161" >> /usr/local/bin/startup.sh
 chmod +x /usr/bin/badvpn-udpgw
 screen -AmdS badvpn7300 badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 100
 screen -AmdS badvpn7500 badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 100
@@ -58,13 +58,13 @@ if ! crontab -l | grep "@reboot bash /usr/local/bin/startup.sh"
 then
 	(crontab -l ; echo "@reboot bash /usr/local/bin/startup.sh") | crontab -
 fi
-if ! crontab -l | grep "59 23 * * * bash /usr/local/bin/acc_expire_check" 
+if ! crontab -l | grep "0 0 * * * bash /usr/local/bin/acc_expire_check" 
 then
-	(crontab -l ; echo "59 23 * * * bash /usr/local/bin/acc_expire_check") | crontab -
+	(crontab -l ; echo "0 0 * * * bash /usr/local/bin/acc_expire_check") | crontab -
 fi
-if ! crontab -l | grep "59 23 * * * bash /usr/local/bin/login_watcher_running_check" 
+if ! crontab -l | grep "0 0 * * * bash /usr/local/bin/login_watcher_running_check" 
 then
-	(crontab -l ; echo "59 23 * * * bash /usr/local/bin/login_watcher_running_check") | crontab -
+	(crontab -l ; echo "0 0 * * * bash /usr/local/bin/login_watcher_running_check") | crontab -
 fi
 
 service cron restart
@@ -90,4 +90,9 @@ systemctl start danted
 # ncat - expire date reporter
 wget -O /usr/local/bin/edr "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/expire_date_reported.sh"
 chmod +x /usr/local/bin/edr
-screen -AmdS expire_date_reporter ncat -k -l 127.0.0.1 6161 -c 'bash /usr/local/bin/edr'
+#screen -AmdS expire_date_reporter ncat -k -l 127.0.0.1 6161 -c 'bash /usr/local/bin/edr'
+
+# acc_axpire_reporter jar file
+wget -O /usr/local/bin/acc_expire_reporter.jar "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/acc_expire_reporter.jar"
+screen -AmdS expire_date_reporter java -jar  /usr/local/bin/acc_expire_reporter.jar --allow 127.0.0.1,5.45.64.41 6161
+
