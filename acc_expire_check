@@ -29,7 +29,7 @@ kill_user_proc(){
 		fi
 	done
 }
-log "acc_axpire_check run"
+
 declare -A $(awk '{print "EXPIRE_DATES["$1"]="$2}' /etc/acc-expire/users)
 DATE=$(date +%F)
 for user in "${!EXPIRE_DATES[@]}"
