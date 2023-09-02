@@ -1,0 +1,16 @@
+[Unit]
+Description=Acount expire date reporter python servise
+After=syslog.target network.target
+
+[Service]
+
+Group=towlogin
+Type=simple
+WorkingDirectory=/usr/local/bin/
+ExecStart=/usr/bin/python3 /usr/local/bin/acc_expire_reporter.py --allow 127.0.0.1,5.45.64.41 6161
+Restart=on-failure
+RestartSec=10
+ExecStop=/bin/kill -15 $MAINPID
+
+[Install]
+WantedBy=multi-user.target
