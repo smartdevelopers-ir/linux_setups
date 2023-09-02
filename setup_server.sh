@@ -8,7 +8,7 @@ apt install dropbear -y
 apt install ufw -y
 apt install iptables-persistent -y
 apt install dante-server -y
-apt install openjdk-17-jre-headless -y
+# apt install openjdk-17-jre-headless -y
 wget -O /usr/local/bin/banner "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/banner.html"
 chmod 755 /usr/local/bin/banner
 read -p "Enter Dropbear port : " D_PORT
@@ -36,7 +36,7 @@ chmod +x /usr/local/bin/startup.sh
 echo '#!/bin/bash' > /usr/local/bin/startup.sh
 echo -e "screen -AmdS badvpn7300 badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 100" >> /usr/local/bin/startup.sh
 echo -e "screen -AmdS badvpn7500 badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 100" >> /usr/local/bin/startup.sh
-echo -e "screen -AmdS expire_date_reporter java -jar  /usr/local/bin/acc_expire_reporter.jar --allow 127.0.0.1,5.45.64.41 6161" >> /usr/local/bin/startup.sh
+# echo -e "screen -AmdS expire_date_reporter java -jar  /usr/local/bin/acc_expire_reporter.jar --allow 127.0.0.1,5.45.64.41 6161" >> /usr/local/bin/startup.sh
 chmod +x /usr/bin/badvpn-udpgw
 screen -AmdS badvpn7300 badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 100
 screen -AmdS badvpn7500 badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 100
@@ -72,17 +72,22 @@ service cron restart
 mkdir /etc/acc-expire
 wget -O /usr/local/bin/userpass "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/userpass"
 chmod +x /usr/local/bin/userpass
+chmod 755 /usr/local/bin/userpass
 wget -O /usr/local/bin/acc_expire_check "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/acc_expire_check"
 chmod +x /usr/local/bin/acc_expire_check
+chmod 755 /usr/local/bin/acc_expire_check
 wget -O /usr/local/bin/update_acc_expire "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/update_acc_expire"
 chmod +x /usr/local/bin/update_acc_expire
+chmod 755 /usr/local/bin/update_acc_expire
 # block IR spy aplications
 wget -O /usr/local/bin/spy_net_blocker "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/spy_net_blocker"
 chmod +x /usr/local/bin/spy_net_blocker
+chmod 755 /usr/local/bin/spy_net_blocker
 bash /usr/local/bin/spy_net_blocker
 # login watcher runnin check
 wget -O /usr/local/bin/login_watcher_running_check "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/login_watcher_running_check"
 chmod +x /usr/local/bin/login_watcher_running_check
+chmod 755 /usr/local/bin/login_watcher_running_check
 # dante proxy server config
 systemctl stop danted
 wget -O /etc/danted.conf "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/danted.conf"
@@ -90,9 +95,19 @@ systemctl start danted
 # ncat - expire date reporter
 wget -O /usr/local/bin/edr "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/expire_date_reported.sh"
 chmod +x /usr/local/bin/edr
+chmod 755 /usr/local/bin/edr
 #screen -AmdS expire_date_reporter ncat -k -l 127.0.0.1 6161 -c 'bash /usr/local/bin/edr'
 
 # acc_axpire_reporter jar file
-wget -O /usr/local/bin/acc_expire_reporter.jar "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/acc_expire_reporter.jar"
-screen -AmdS expire_date_reporter java -jar  /usr/local/bin/acc_expire_reporter.jar --allow 127.0.0.1,5.45.64.41 6161
+# wget -O /usr/local/bin/acc_expire_reporter.jar "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/acc_expire_reporter.jar"
+# screen -AmdS expire_date_reporter java -jar  /usr/local/bin/acc_expire_reporter.jar --allow 127.0.0.1,5.45.64.41 6161
+
+# acc_axpire_reporter python file
+wget -O /usr/local/bin/acc_expire_reporter.py "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/acc_expire_reporter.py"
+chmod 755 /usr/local/bin/acc_expire_reporter.py
+# acc_axpire_reporter service
+wget -O /etc/systemd/system/acc-expire-reporter.service "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/acc-expire-reporter.service"
+systemctl daemon-reload
+systemctl enable acc-expire-reporter.service
+systemctl start acc-expire-reporter.service
 
