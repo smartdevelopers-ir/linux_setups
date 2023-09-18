@@ -29,24 +29,76 @@ kill_user_proc(){
 		fi
 	done
 }
-
+get_all_loginable_users(){
+	min_uid=$(grep "^UID_MIN" /etc/login.defs | awk '{print $2}')
+	max_uid=$(grep "^UID_MAX" /etc/login.defs | awk '{print $2}')
+	awk -F ':' -v "min=$min_uid" -v "max=$max_uid" '{if ( $3 >= min && $3 <= max ) print $1}' /etc/passwd
+}
+is_noexpire(){
+	local user=$1
+	local user_groups=($(id -Gn $user 2> /dev/null))
+	for group in "${user_groups[@]}"
+	do
+		if [[ "$group" == "noexpire" ]]; then
+			return 0
+		fi
+	done
+	return 1
+}
+is_locked(){
+	local user=$1
+	local pass=$(awk -F ':' -v "name=$user" '$1 == name {print $2}' /etc/shadow)
+	[[ "$pass" == '!'* ]] && return 0 || return 1
+}
+should_delete(){
+	local expire_date=$1
+	if [[ $(( $(date +%j) - $(date +%j -d "$expire_date") )) -gt 6 ]]; then
+		return 0
+	else
+		return 1
+	fi
+	
+}
+do_lock(){
+	local user=$1
+	sudo usermod -L $user
+	# log out user
+	kill_user_proc $user
+}
 declare -A $(awk '{print "EXPIRE_DATES["$1"]="$2}' /etc/acc-expire/users)
 DATE=$(date +%F)
-for user in "${!EXPIRE_DATES[@]}"
+ALL_LOGIN_USERS=($(get_all_loginable_users))
+for user in "${ALL_LOGIN_USERS[@]}"
 do
-	#check if user exists
-	#if not remove the line contains not-exsisting user from /etc/acc-expire/users
-	if ! id -u $user &>/dev/null; then
-		log "User $user dose not exists, removing it from /etc/acc-expire/users"
-		echo -e "$(grep -v -w "$user" /etc/acc-expire/users)" > /etc/acc-expire/users
+	# first check if users's group is not noexpire
+	if is_noexpire $user; then
+		continue
+	fi
+	# if user has no expire date lock the user
+	if [[ -z "${EXPIRE_DATES[$user]}" ]]; then 
+		log "user '$user' is not in noexpire group and has no expire date in users file. locking it down"
+		do_lock $user
 		continue
 	fi
 	if [[ $(date +%s) -gt $(date +%s -d "${EXPIRE_DATES[$user]} 23:59:59 ") ]]; then
 		 
-		sudo usermod -L "$user"
+		# chek if user already locked 
+		if is_locked $user; then
+			# check if expire date is more than 6 days delete user 
+			if should_delete "${EXPIRE_DATES[$user]}"
+			then
+				userdel $user
+				echo -e "$(grep -v -w "$user" /etc/acc-expire/users)" > /etc/acc-expire/users
+				log "user '$user' is expire more than 6 days. deleting its account"
+			fi
+			
+			continue
+		fi
+		
+		do_lock "$user"
 		log "User $user was locked"
-		# log out user
-		kill_user_proc $user
+		
+		
 	fi
 done
 
