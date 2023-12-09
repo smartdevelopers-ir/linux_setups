@@ -1,4 +1,27 @@
 #!/bin/bash
+
+ssh_attack_blocker(){
+iptables -A INPUT -p tcp -m tcp --dport 8522 -m state --state NEW -m recent --set --name DEFAULT --rsource
+iptables -N LOG_AND_DROP
+iptables -A INPUT  -p tcp -m tcp --dport 8522 -m state --state NEW -m recent --update --seconds 60 --hitcount 4 --name DEFAULT --rsource -j LOG_AND_DROP
+iptables -A INPUT  -p tcp -m tcp --dport 8522 -j ACCEPT
+iptables -A LOG_AND_DROP -j LOG --log-prefix "iptables deny: " --log-level 7
+iptables -A LOG_AND_DROP -j DROP
+echo -e ':msg,contains,"iptables deny: " /var/log/iptables.log\n& ~' > /etc/rsyslog.d/iptables.conf
+echo -e '/var/log/iptables.log
+{
+  rotate 7
+  daily
+  missingok
+  notifempty
+  delaycompress
+  compress
+  postrotate
+      invoke-rc.d rsyslog reload > /dev/null
+  endscript
+}' > /etc/logrotate.d/iptables
+systemctl restart rsyslog
+}
 apt update
 apt upgrade -y
 timedatectl set-timezone Asia/Tehran
@@ -6,6 +29,7 @@ apt install vim -y
 apt install inotify-tools -y
 apt install dropbear -y
 apt install ufw -y
+ssh_attack_blocker
 apt install iptables-persistent -y
 apt install dante-server -y
 # apt install openjdk-17-jre-headless -y
