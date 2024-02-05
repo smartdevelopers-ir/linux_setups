@@ -52,7 +52,7 @@ is_locked(){
 }
 should_delete(){
 	local expire_date=$1
-	if [[ $(( $(date +%j) - $(date +%j -d "$expire_date") )) -gt 6 ]]; then
+	if [[ $(( $(date +%_j) - $(date +%_j -d "$expire_date") )) -gt 6 ]]; then
 		return 0
 	else
 		return 1
@@ -72,6 +72,9 @@ for user in "${ALL_LOGIN_USERS[@]}"
 do
 	# first check if users's group is not noexpire
 	if is_noexpire $user; then
+		continue
+	fi
+	if [[ "${EXPIRE_DATES[$user]}" == "noexpire" ]]; then
 		continue
 	fi
 	# if user has no expire date lock the user
