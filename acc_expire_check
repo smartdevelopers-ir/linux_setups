@@ -64,6 +64,10 @@ do_lock(){
 	sudo usermod -L $user
 	# log out user
 	kill_user_proc $user
+	xrayLockCount=$(/usr/local/bin/xray-user-manager -lock $user)
+	if [[ $xrayLockCount -gt 0 ]]; then
+		systemctl restart xray
+	fi
 }
 declare -A $(awk '{print "EXPIRE_DATES["$1"]="$2}' /etc/acc-expire/users)
 DATE=$(date +%F)
@@ -91,6 +95,10 @@ do
 			if should_delete "${EXPIRE_DATES[$user]}"
 			then
 				userdel $user
+				xrayDeleteCount=$(/usr/local/bin/xray-user-manager -delete $user)
+				if [[ $xrayDeleteCount -gt 0 ]]; then
+					systemctl restart xray
+				fi
 				echo -e "$(grep -v -w "$user" /etc/acc-expire/users)" > /etc/acc-expire/users
 				log "user '$user' is expire more than 6 days. deleting its account"
 			fi
@@ -100,10 +108,6 @@ do
 		
 		do_lock "$user"
 		log "User $user was locked"
-		
-		
 	fi
 done
-
-
 

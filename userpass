@@ -1,15 +1,20 @@
 #!/bin/bash
+user_name="$1"
+pass="$2"
+if [[ -z "$user_name" ]]; then
 read -p "Enter UserName : " user_name
+fi
+if [[ -z "$pass" ]]; then
 read -p "Enter Password : " pass
 read -e -p "Enter Group name [default is twologin] : " -i "twologin" group
+fi
 group=${group:-"twologin"}
-if ! getent group "$group"
+if ! getent group "$group" &> /dev/null
 then 
 	sudo groupadd "$group"
 fi
 if sudo useradd "$user_name" -g "$group" -M
 then
-	echo -e "$pass\n$pass" | passwd "$user_name"
+	chpasswd <<< "$user_name:$pass" 1> /dev/null
 	bash /usr/local/bin/update_acc_expire -n "$user_name" 
 fi
-

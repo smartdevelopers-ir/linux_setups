@@ -47,7 +47,7 @@ if [[ $USER_NAME ]]
 then
 	# user exists
 	if ! id -u $USER_NAME &>/dev/null; then
-		echo "User $USER_NAME dose not exists"
+		echo "User $USER_NAME dose not exists" >&2
 		exit 1
 	fi
 	
@@ -64,6 +64,10 @@ then
 			# if expire date is passed
 			if [[ $diffSecond -gt 0 ]]; then
 				sudo usermod -U $USER_NAME
+				xrayUnlockCount=$(/usr/local/bin/xray-user-manager -unlock $USER_NAME)
+				if [[ $xrayUnlockCount -gt 0 ]]; then
+					systemctl restart xray
+				fi
 				echo "User $USER_NAME has been locked in $edate. Now its unlocked."
 				DATE="Today"
 			else
@@ -86,8 +90,8 @@ then
 		echo "$USER_NAME $next_expire_date" >> /etc/acc-expire/users
 	fi
 	log "Next expire date for user $USER_NAME was set to $next_expire_date"
+	
 else
 	echo "You must spesify user name"
 fi
-
 
