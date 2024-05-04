@@ -22,6 +22,92 @@ echo -e '/var/log/iptables.log
 }' > /etc/logrotate.d/iptables
 systemctl restart rsyslog
 }
+install_smartws(){
+APPNAME="smartws"
+SERVER_NAME=""
+SERVER_PORT=""
+while [ -z "$SERVER_NAME" ]; do
+	read -p "$Enter server domain : " SERVER_NAME
+done
+while [ -z "$SERVER_PORT" ]; do
+	read -p "$Enter ssh port : " SERVER_PORT
+done
+# install xray-core
+# installed: /etc/systemd/system/xray.service
+# installed: /etc/systemd/system/xray@.service
+# 
+# installed: /usr/local/bin/xray
+# installed: /usr/local/etc/xray/*.json
+# 
+# installed: /usr/local/share/xray/geoip.dat
+# installed: /usr/local/share/xray/geosite.dat
+# 
+# installed: /var/log/xray/access.log
+# installed: /var/log/xray/error.log
+if ! ls /etc/systemd/system/xray.service &> /dev/null; then
+	bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+fi
+# download smartws zip and extract it to /opt/smartws/
+if ls /tmp/$APPNAME.zip &> /dev/null ; then
+	read -p "$APPNAME.zip is already exists. Do you want to download it again ? y(es),n(o)" dowload_zip_again
+	if [[ "${dowload_zip_again,,}" == "y" ]] || [[ "${dowload_zip_again,,}" == "yes" ]]; then
+		wget -O /tmp/$APPNAME.zip https://github.com/mostafa3dmax/smart_tunnel/raw/main/smartws.zip
+	fi
+else
+	wget -O /tmp/$APPNAME.zip https://github.com/mostafa3dmax/smart_tunnel/raw/main/smartws.zip
+fi
+
+rm -r /opt/$APPNAME &> /dev/null
+unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
+chown root /opt/$APPNAME
+# make config folder
+mkdir /etc/opt/$APPNAME &> /dev/null
+
+# copy smartws config to /opt/$APPNAME/config/
+if ls /etc/opt/$APPNAME/config &> /dev/null; then
+	read -p "$APPNAME config file is already exists. Do you want reaplace it ? y(es),n(o)" replace_config
+	if [[ "${replace_config,,}" == "y" ]] || [[ "${replace_config,,}" == "yes" ]]; then
+		cp /opt/$APPNAME/config/config /etc/opt/$APPNAME/config
+	fi
+else
+	cp /opt/$APPNAME/config/config /etc/opt/$APPNAME/config
+fi
+# copy xray config to /usr/local/etc/xray/*
+cp /opt/$APPNAME/config/xray_config.json /usr/local/etc/xray/config.json
+
+# link new smartws script to /usr/local/bin
+ln -f -s /opt/$APPNAME/script/smartws /usr/local/bin/smartws
+chmod +x /usr/local/bin/smartws
+chown root /usr/local/bin/smartws
+groupadd smartws 2> /dev/null
+ln -f -s /opt/$APPNAME/service/smartws.service /etc/systemd/system/smartws.service
+# copy nginx config
+cp /opt/$APPNAME/config/nginx_config /etc/nginx/sites-available/$SERVER_NAME
+# change nginx config 
+sed -i -e 's#sh3.goolha.tk#'$SERVER_NAME'#' /etc/nginx/sites-available/$SERVER_NAME
+echo "nginx config updated"
+
+# modify xray service user
+sed -i -e 's/User=nobody/User=root/' /etc/systemd/system/xray.service
+echo "xray service user updated"
+# change smartws config parameters 
+sed -i -e 's#"port": 2232#"port": '"$SERVER_PORT"'#' /etc/opt/$APPNAME/config
+sed -i -e 's#"sh3.goolha.tk#'"$SERVER_NAME"'#' /etc/opt/$APPNAME/config
+ln -s /etc/nginx/sites-available/$SERVER_NAME /etc/nginx/sites-enabled/$SERVER_NAME
+echo "smartws config updated"
+certbot certonly --nginx
+
+systemctl daemon-reload
+
+rm /tmp/$APPNAME.zip
+systemctl enable smartws.service
+systemctl stop smartws.service
+systemctl start smartws.service
+systemctl enable xray.service
+systemctl stop xray.service
+systemctl start xray.service
+systemctl restart nginx.service
+}
 apt update
 apt upgrade -y
 timedatectl set-timezone Asia/Tehran
@@ -32,7 +118,9 @@ apt install ufw -y
 ssh_attack_blocker
 apt install iptables-persistent -y
 apt install dante-server -y
-# apt install openjdk-17-jre-headless -y
+apt install nginx -y
+snap install --classic certbot
+apt install openjdk-17-jre-headless -y
 wget -O /usr/local/bin/banner "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/banner.html"
 chmod 755 /usr/local/bin/banner
 read -p "Enter Dropbear port : " D_PORT
