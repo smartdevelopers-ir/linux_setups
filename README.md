@@ -5,4 +5,6 @@ wget -O /usr/local/bin/ssh_session_check.sh "https://raw.githubusercontent.com/s
 
 wget -O /usr/local/bin/setup_server.sh "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/setup_server.sh"
 
+```
 sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/setup_server.sh)"
+```
