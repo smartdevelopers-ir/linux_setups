@@ -121,6 +121,7 @@ apt install dante-server -y
 apt install nginx -y
 snap install --classic certbot
 apt install openjdk-17-jre-headless -y
+install_smartws
 wget -O /usr/local/bin/banner "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/banner.html"
 chmod 755 /usr/local/bin/banner
 read -p "Enter Dropbear port : " D_PORT
