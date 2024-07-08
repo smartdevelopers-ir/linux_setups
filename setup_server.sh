@@ -72,17 +72,26 @@ if ls /etc/opt/$APPNAME/config &> /dev/null; then
 else
 	cp /opt/$APPNAME/config/config /etc/opt/$APPNAME/config
 fi
+cp /opt/$APPNAME/config/limited /etc/opt/$APPNAME/limited
+
 # copy xray config to /usr/local/etc/xray/*
 cp /opt/$APPNAME/config/xray_config.json /usr/local/etc/xray/config.json
 
 # link new smartws script to /usr/local/bin
 ln -f -s /opt/$APPNAME/script/smartws /usr/local/bin/smartws
+ln -f -s /opt/$APPNAME/script/smartws_reset_traffic /usr/local/bin/smartws_reset_traffic
 chmod +x /usr/local/bin/smartws
+chmod +x /usr/local/bin/smartws_reset_traffic
 chown root /usr/local/bin/smartws
+chown root /usr/local/bin/smartws_reset_traffic
 groupadd smartws 2> /dev/null
 ln -f -s /opt/$APPNAME/service/smartws.service /etc/systemd/system/smartws.service
+ln -f -s /opt/$APPNAME/service/smartws@.service /etc/systemd/system/smartws@.service
 # copy nginx config
-cp /opt/$APPNAME/config/nginx_config /etc/nginx/sites-available/$SERVER_NAME
+cp /opt/$APPNAME/config/nginx/nginx_config /etc/nginx/sites-available/$SERVER_NAME
+mkdir etc/nginx/locations
+cp /opt/$APPNAME/config/nginx/locations/domain /etc/nginx/locations/$SERVER_NAME
+cp /opt/$APPNAME/config/nginx/locations/ws /etc/nginx/locations/ws
 # change nginx config 
 sed -i -e 's#sh3.goolha.tk#'$SERVER_NAME'#' /etc/nginx/sites-available/$SERVER_NAME
 echo "nginx config updated"
@@ -92,7 +101,9 @@ sed -i -e 's/User=nobody/User=root/' /etc/systemd/system/xray.service
 echo "xray service user updated"
 # change smartws config parameters 
 sed -i -e 's#"port": 2232#"port": '"$SERVER_PORT"'#' /etc/opt/$APPNAME/config
+sed -i -e 's#"port": 2232#"port": '"$SERVER_PORT"'#' /etc/opt/$APPNAME/limited
 sed -i -e 's#"sh3.goolha.tk#'"$SERVER_NAME"'#' /etc/opt/$APPNAME/config
+sed -i -e 's#"sh3.goolha.tk#'"$SERVER_NAME"'#' /etc/opt/$APPNAME/limited
 ln -s /etc/nginx/sites-available/$SERVER_NAME /etc/nginx/sites-enabled/$SERVER_NAME
 echo "smartws config updated"
 certbot certonly --nginx
@@ -101,8 +112,10 @@ systemctl daemon-reload
 
 rm /tmp/$APPNAME.zip
 systemctl enable smartws.service
+systemctl enable smartws@limited.service
 systemctl stop smartws.service
 systemctl start smartws.service
+systemctl start smartws@limited.service
 systemctl enable xray.service
 systemctl stop xray.service
 systemctl start xray.service
@@ -116,6 +129,8 @@ Match Group threelogin
         PermitTTY no
 Match Group noexpire
         PermitTTY no
+Match Group onelogin
+		PermitTTY no
 EOF
 }
 apt update
@@ -141,6 +156,9 @@ ufw allow $D_PORT
 systemctl enable --now dropbear
 systemctl start dropbear
 groupadd twologin
+groupadd treelogin
+groupadd onelogin
+groupadd noexpire
 echo -e "@twologin\t-\tmaxlogins\t2" >>  /etc/security/limits.conf
 disable_ssh_tty
 systemctl restart sshd

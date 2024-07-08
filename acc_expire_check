@@ -52,6 +52,9 @@ is_locked(){
 }
 should_delete(){
 	local expire_date=$1
+	if [[ -z $expire_date ]]; then
+		return 0
+	fi
 	if [[ $(( $(date +%_j) - $(date +%_j -d "$expire_date") )) -gt 6 ]]; then
 		return 0
 	else
@@ -69,6 +72,16 @@ do_lock(){
 		systemctl restart xray
 	fi
 }
+delete_user(){
+	local user=$1
+	userdel $user
+	xrayDeleteCount=$(/usr/local/bin/xray-user-manager -delete $user)
+	if [[ $xrayDeleteCount -gt 0 ]]; then
+		systemctl restart xray
+	fi
+	echo -e "$(grep -v -w "$user" /etc/acc-expire/users)" > /etc/acc-expire/users
+	
+}
 declare -A $(awk '{print "EXPIRE_DATES["$1"]="$2}' /etc/acc-expire/users)
 DATE=$(date +%F)
 ALL_LOGIN_USERS=($(get_all_loginable_users))
@@ -83,8 +96,8 @@ do
 	fi
 	# if user has no expire date lock the user
 	if [[ -z "${EXPIRE_DATES[$user]}" ]]; then 
-		log "user '$user' is not in noexpire group and has no expire date in users file. locking it down"
-		do_lock $user
+		log "user '$user' is not in noexpire group and has no expire date in users file. deleting it"
+		delete_user $user
 		continue
 	fi
 	if [[ $(date +%s) -gt $(date +%s -d "${EXPIRE_DATES[$user]} 23:59:59 ") ]]; then
@@ -94,12 +107,7 @@ do
 			# check if expire date is more than 6 days delete user 
 			if should_delete "${EXPIRE_DATES[$user]}"
 			then
-				userdel $user
-				xrayDeleteCount=$(/usr/local/bin/xray-user-manager -delete $user)
-				if [[ $xrayDeleteCount -gt 0 ]]; then
-					systemctl restart xray
-				fi
-				echo -e "$(grep -v -w "$user" /etc/acc-expire/users)" > /etc/acc-expire/users
+				delete_user $user
 				log "user '$user' is expire more than 6 days. deleting its account"
 			fi
 			
