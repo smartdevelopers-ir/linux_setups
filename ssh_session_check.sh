@@ -72,13 +72,18 @@ kill_proc(){
 PIDS_STRING=$(ps -C dropbear | grep dropbear | awk '{print $1}');
 PID_ARRAY=($PIDS_STRING);
 declare -A USERS
+declare -A IPs
 for i in ${PID_ARRAY[@]}
 do
-	TMP_USER=$(grep -a "\\[$i\\]" /var/log/auth.log | awk '/Password auth succeeded for/{print $10}')
+	LINE=$(grep -a "\\[$i\\]" /var/log/auth.log | awk '/Password auth succeeded for/{print}')
+	TMP_USER=$(echo "$LINE" | awk '{print $10}')
+	TMP_IP_PORT=$(echo "$LINE" | awk '{print $12}')
+	IP=$(echo $TMP_IP_PORT |  awk -F ":"  '{out=$1; for (i = 2; i <NF ; i++) {out= out":"$i}; print out}')
 	if [[ ! -z $TMP_USER ]]
 	then
 		#remove single cotation from user name and put to users array
 		USERS["$i"]="${TMP_USER//[^a-zA-Z0-9_]/''}"
+		IPs["$i"]=$IP
 	fi
 	
 done
@@ -91,14 +96,15 @@ do
 	usr=${USERS[$PID]}
 	user_count=$(find_member_count $usr ${USERS[@]})
 	allowed_session=$(calculate_session_count $usr)
-	echo "Session allowed for user $usr is : $allowed_session. $usr is logged in $user_count time(s)"
+	IP=${IPs[$PID]}
+	echo "Session allowed for user $usr is : $allowed_session. $usr is logged in $user_count time(s) ip : $IP"
 	if [[ $allowed_session -ge 0 ]]
 	then
 		let diff=$user_count-$allowed_session
 		#there is more than allowed session
 		if [[ $diff -gt 0 ]]
 		then 
-			kill_message="${RED}[$(date '+%Y-%m-%d %H:%M:%S')] There is more than allowed session for $usr, killing session $PID ${NC}"
+			kill_message="${RED}[$(date '+%Y-%m-%d %H:%M:%S')] There is more than allowed session for $usr, killing session $PID ip:$IP ${NC}"
 			echo -e "$kill_message"
 			echo -e "$kill_message" >> /var/log/ssh_session_check.log
 			
@@ -108,4 +114,5 @@ do
 	fi
 	
 done
+echo "all online users = ${#USERS[@]}"
 
