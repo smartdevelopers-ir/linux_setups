@@ -22,6 +22,16 @@ echo -e '/var/log/iptables.log
 }' > /etc/logrotate.d/iptables
 systemctl restart rsyslog
 }
+install_xray_usermanage(){
+mkdir /opt/javas 2> /dev/null
+wget -O /opt/javas/xray-user-manager.jar https://github.com/mostafa3dmax/smart_tunnel/raw/main/xray-user-manager.jar
+cat > /usr/local/bin/xray-user-manager <<'EOF'
+#!/bin/bash
+/bin/java -jar /opt/javas/xray-user-manager.jar "$@"
+EOF
+chmod 700 /usr/local/bin/xray-user-manager
+
+}
 install_smartws(){
 APPNAME="smartws"
 SERVER_NAME=""
@@ -89,7 +99,7 @@ ln -f -s /opt/$APPNAME/service/smartws.service /etc/systemd/system/smartws.servi
 ln -f -s /opt/$APPNAME/service/smartws@.service /etc/systemd/system/smartws@.service
 # copy nginx config
 cp /opt/$APPNAME/config/nginx/nginx_config /etc/nginx/sites-available/$SERVER_NAME
-mkdir etc/nginx/locations
+mkdir /etc/nginx/locations
 cp /opt/$APPNAME/config/nginx/locations/domain /etc/nginx/locations/$SERVER_NAME
 cp /opt/$APPNAME/config/nginx/locations/ws /etc/nginx/locations/ws
 # change nginx config 
@@ -144,9 +154,11 @@ ssh_attack_blocker
 apt install iptables-persistent -y
 apt install dante-server -y
 apt install nginx -y
+apt install snapd -y
 snap install --classic certbot
 apt install openjdk-17-jre-headless -y
 install_smartws
+install_xray_usermanage
 wget -O /usr/local/bin/banner "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/banner.html"
 chmod 755 /usr/local/bin/banner
 read -p "Enter Dropbear port : " D_PORT
@@ -156,7 +168,7 @@ ufw allow $D_PORT
 systemctl enable --now dropbear
 systemctl start dropbear
 groupadd twologin
-groupadd treelogin
+groupadd threelogin
 groupadd onelogin
 groupadd noexpire
 echo -e "@twologin\t-\tmaxlogins\t2" >>  /etc/security/limits.conf
