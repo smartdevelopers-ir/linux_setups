@@ -9,7 +9,7 @@ def main():
     users_file_path = None
     verbose = False
 
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 1:
         i = 1
         while i < len(sys.argv):
             arg = sys.argv[i]
