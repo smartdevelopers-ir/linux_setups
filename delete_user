@@ -1,0 +1,48 @@
+#! /bin/bash
+
+kill_proc(){
+local username=$1
+PIDS_STRING=$(ps -C dropbear | grep dropbear | awk '{print $1}');
+PID_ARRAY=($PIDS_STRING);
+declare -A USERS
+for i in ${PID_ARRAY[@]}
+do
+	LINE=$(grep -a "\\[$i\\]" /var/log/auth.log | awk '/Password auth succeeded for/{print}')
+	TMP_USER=$(echo "$LINE" | awk '{print $10}')
+	if [[ ! -z $TMP_USER ]]
+	then
+		#remove single cotation from user name and put to users array
+		USERS["$i"]="${TMP_USER//[^a-zA-Z0-9_]/''}"
+	fi
+	
+done
+PIDS_STRING="${!USERS[*]}"
+SORTED_PIDS=($(echo -e "${PIDS_STRING//' '/'\n'}" | sort -n))
+#echo "SORTED_PIDS = " "${SORTED_PIDS[@]}"
+for PID in ${SORTED_PIDS[@]}
+do
+	#echo "current pid = $PID"
+	usr=${USERS[$PID]}
+	if [[ "$usr" == "$username" ]]
+	then
+		kill $PID
+		unset USERS[$PID]
+	fi
+	
+done
+}
+delete_user(){
+USERNAME=$1
+if [[ "$USERNAME" == "root" ]]; then
+	return 1
+fi
+userdel "$USERNAME"
+sed -i '/\<'"$USERNAME"'\>/d' /etc/acc-expire/users
+/usr/local/bin/smartws_delete_user "$USERNAME"
+XRAY_COUNT=$(/usr/local/bin/xray-user-manager -delete $USERNAME)
+if [[ $XRAY_COUNT -gt 0 ]]; then
+systemctl restart xray;
+fi
+kill_proc "$USERNAME"
+}
+delete_user "$1"

@@ -3,6 +3,7 @@ USER_NAME=""
 DATE=""
 # This is period of updating mount. for example if you want set expire date for 3 mount later from passed date, set this to 3
 PERIOD=1
+TRAFFIC_PER_MOUNT=30
 print_help(){
 	echo -e "-n\tusen name"
 	echo -e "-d\tThe date option, next expire date will calculate from given date"
@@ -17,32 +18,69 @@ log(){
 #d is date that must be claculated from it
 #e is option for just extend expire date for next priod 
 #p is priod count 
-while getopts ":n:d:p:h" opt; do
-	case $opt in
-		n)
-			USER_NAME="$OPTARG"
-			;;
-		d)
-			DATE="$OPTARG"
-			;;
-		p)
-			PERIOD="$OPTARG"
-			;;
-		h)
-			print_help
-			exit 1
-			;;
-		
-		\?)
-			echo "Invalid option -$OPTARG" >&2
-			exit 1
-			;;
-		:)
-			echo "Option -$OPTARG requires an argument." >&2
-			exit 1
-			;;
-	esac
-done
+#tmp is traffic_per_month
+while test $# -gt 0; do
+           case "$1" in
+                -n)
+                    shift
+                    USER_NAME=$1
+                    shift
+                    ;;
+                -d)
+                    shift
+                    DATE=$1
+                    shift
+                    ;;
+				-p)
+                    shift
+                    PERIOD=$1
+                    shift
+                    ;;
+				-traffic_per_month)
+                    shift
+                    TRAFFIC_PER_MOUNT=$1
+                    shift
+                    ;;
+				-h)
+                    print_help
+					exit 1
+                    ;;
+                *)
+                   echo "Invalid option -$OPTARG" >&2
+					exit 1
+                   ;;
+          esac
+  done
+
+#while getopts ":n:d:p:traffic_per_month:h" opt; do
+#	case $opt in
+#		n)
+#			USER_NAME="$OPTARG"
+#			;;
+#		d)
+#			DATE="$OPTARG"
+#			;;
+#		p)
+#			PERIOD="$OPTARG"
+#			;;
+#		traffic_per_month)
+#			TRAFFIC_PER_MOUNT="$OPTARG"
+#			;;
+#		h)
+#			print_help
+#			exit 1
+#			;;
+#		
+#		\?)
+#			echo "Invalid option -$OPTARG" >&2
+#			exit 1
+#			;;
+#		:)
+#			echo "Option -$OPTARG requires an argument." >&2
+#			exit 1
+#			;;
+#	esac
+#done
 if [[ $USER_NAME ]]
 then
 	# user exists
@@ -85,10 +123,11 @@ then
 	next_expire_date=$(date -d "$DATE 23:59:59 $((30 * $PERIOD)) days" +%F)
 	
 	if grep -w $USER_NAME /etc/acc-expire/users &>/dev/null; then
-		sudo awk -v "UNAME=$USER_NAME" -v "DATE=$next_expire_date" -v "PERIOD=$PERIOD" '$1==UNAME {$2=DATE ; if(NF > 2) $4=$3 * PERIOD} {print $0}' /etc/acc-expire/users > /tmp/tmp-users && mv /tmp/tmp-users /etc/acc-expire/users
-		/usr/local/bin/smartws_reset_traffic $USER_NAME $edate
+		sudo awk -v "UNAME=$USER_NAME" -v "DATE=$next_expire_date" -v "PERIOD=$PERIOD" -v "TPM=$TRAFFIC_PER_MOUNT" '$1==UNAME {$2=DATE ; if(NF > 2) {$3=TPM ; $4=$3 * PERIOD}} {print $0}' /etc/acc-expire/users > /tmp/tmp-users && mv /tmp/tmp-users /etc/acc-expire/users
+		bash /usr/local/bin/smartws_add_plan $USER_NAME $next_expire_date $PERIOD $TRAFFIC_PER_MOUNT
 	else
-		echo "$USER_NAME $next_expire_date 30 30" >> /etc/acc-expire/users
+		echo "$USER_NAME $next_expire_date $TRAFFIC_PER_MOUNT $(( $TRAFFIC_PER_MOUNT*$PERIOD ))" >> /etc/acc-expire/users
+		bash /usr/local/bin/smartws_add_plan $USER_NAME $next_expire_date $PERIOD $TRAFFIC_PER_MOUNT
 	fi
 	log "Next expire date for user $USER_NAME was set to $next_expire_date"
 	

@@ -1,6 +1,8 @@
 #!/bin/bash
 user_name="$1"
 pass="$2"
+period="$3"
+traffic_per_month="$4"
 if [[ -z "$user_name" ]]; then
 read -p "Enter UserName : " user_name
 fi
@@ -16,5 +18,15 @@ fi
 if sudo useradd "$user_name" -g "$group" -M
 then
 	chpasswd <<< "$user_name:$pass" 1> /dev/null
-	bash /usr/local/bin/update_acc_expire -n "$user_name" 
+	p=""
+	t=""
+	if [[ ! -z "$period" ]]; then
+		p="-p $period"
+	fi
+	if [[ ! -z "$traffic_per_month" ]]; then
+		t="-traffic_per_month $traffic_per_month"
+	fi
+	args="-n $user_name $p $t"
+	array=($args)
+	bash /usr/local/bin/update_acc_expire ${array[@]}
 fi
