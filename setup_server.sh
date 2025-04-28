@@ -329,6 +329,9 @@ then
 	(crontab -l ; echo "15 0 * * * bash /usr/local/bin/login_watcher_running_check") | crontab -
 fi
 
+#install easymesh
+bash <(curl -Ls --ipv4 https://github.com/Musixal/easy-mesh/raw/main/easymesh_v2.sh)
+
 service cron restart
 #add userpass script for simplly add user
 mkdir /etc/acc-expire
