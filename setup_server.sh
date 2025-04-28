@@ -89,11 +89,29 @@ cp /opt/$APPNAME/config/xray_config.json /usr/local/etc/xray/config.json
 
 # link new smartws script to /usr/local/bin
 ln -f -s /opt/$APPNAME/script/smartws /usr/local/bin/smartws
-ln -f -s /opt/$APPNAME/script/smartws_reset_traffic /usr/local/bin/smartws_reset_traffic
+ln -f -s /opt/$APPNAME/script/smartws_add_plan /usr/local/bin/smartws_add_plan
+ln -f -s /opt/$APPNAME/script/smartws_change_plan /usr/local/bin/smartws_change_plan
+ln -f -s /opt/$APPNAME/script/smartws_delete_plan /usr/local/bin/smartws_delete_plan
+ln -f -s /opt/$APPNAME/script/smartws_shutdown /usr/local/bin/smartws_shutdown
+ln -f -s /opt/$APPNAME/script/smartws_delete_user /usr/local/bin/smartws_delete_user
+ln -f -s /opt/$APPNAME/script/smartws_get_plans /usr/local/bin/smartws_get_plans
+ln -f -s /opt/$APPNAME/script/smartws_online_users /usr/local/bin/smartws_online_users
 chmod +x /usr/local/bin/smartws
-chmod +x /usr/local/bin/smartws_reset_traffic
+chmod +x /usr/local/bin/smartws_add_plan
+chmod +x /usr/local/bin/smartws_change_plan
+chmod +x /usr/local/bin/smartws_delete_plan
+chmod +x /usr/local/bin/smartws_shutdown
+chmod +x /usr/local/bin/smartws_delete_user
+chmod +x /usr/local/bin/smartws_get_plans
+chmod +x /usr/local/bin/smartws_online_users
 chown root /usr/local/bin/smartws
-chown root /usr/local/bin/smartws_reset_traffic
+chown root /usr/local/bin/smartws_add_plan
+chown root /usr/local/bin/smartws_change_plan
+chown root /usr/local/bin/smartws_delete_plan
+chown root /usr/local/bin/smartws_shutdown
+chown root /usr/local/bin/smartws_delete_user
+chown root /usr/local/bin/smartws_get_plans
+chown root /usr/local/bin/smartws_online_users
 groupadd smartws 2> /dev/null
 ln -f -s /opt/$APPNAME/service/smartws.service /etc/systemd/system/smartws.service
 ln -f -s /opt/$APPNAME/service/smartws@.service /etc/systemd/system/smartws@.service
@@ -116,8 +134,9 @@ sed -i -e 's#"sh3.goolha.tk#'"$SERVER_NAME"'#' /etc/opt/$APPNAME/config
 sed -i -e 's#"sh3.goolha.tk#'"$SERVER_NAME"'#' /etc/opt/$APPNAME/limited
 ln -s /etc/nginx/sites-available/$SERVER_NAME /etc/nginx/sites-enabled/$SERVER_NAME
 echo "smartws config updated"
+comment_nginx_ssl
 certbot certonly --nginx
-
+uncomment_nginx_ssl
 systemctl daemon-reload
 
 rm /tmp/$APPNAME.zip
@@ -131,6 +150,23 @@ systemctl stop xray.service
 systemctl start xray.service
 systemctl restart nginx.service
 }
+comment_nginx_ssl(){
+
+sed -i -e 's@listen [::]:8443 ssl ipv6@listen [::]:8443 ipv6@' /etc/nginx/sites-available/$SERVER_NAME
+sed -i -e 's@listen 8443 ssl;@listen 8443 ;@' /etc/nginx/sites-available/$SERVER_NAME
+sed -i -e 's@ssl_certificate@#ssl_certificate@' /etc/nginx/sites-available/$SERVER_NAME
+sed -i -e 's@ssl_certificate_key@#ssl_certificate_key@' /etc/nginx/sites-available/$SERVER_NAME
+sed -i -e 's@include /etc/letsencrypt@#include /etc/letsencrypt@' /etc/nginx/sites-available/$SERVER_NAME
+sed -i -e 's@ssl_dhparam@#ssl_dhparam@' /etc/nginx/sites-available/$SERVER_NAME
+}
+uncomment_nginx_ssl(){
+sed -i -e 's@listen [::]:8443 ipv6@listen [::]:8443 ssl ipv6@' /etc/nginx/sites-available/$SERVER_NAME
+sed -i -e 's@listen 8443 ;@listen 8443 ssl;@' /etc/nginx/sites-available/$SERVER_NAME
+sed -i -e 's@#ssl_certificate@ssl_certificate@' /etc/nginx/sites-available/$SERVER_NAME
+sed -i -e 's@#ssl_certificate_key@ssl_certificate_key@' /etc/nginx/sites-available/$SERVER_NAME
+sed -i -e 's@#include /etc/letsencrypt@include /etc/letsencrypt@' /etc/nginx/sites-available/$SERVER_NAME
+sed -i -e 's@#ssl_dhparam@ssl_dhparam@' /etc/nginx/sites-available/$SERVER_NAME
+}
 disable_ssh_tty(){
 cat >> /etc/ssh/sshd_config << 'EOF'
 Match Group twologin
@@ -143,6 +179,77 @@ Match Group onelogin
 		PermitTTY no
 EOF
 }
+install_lock_user_script(){
+cat > /usr/local/bin/lock_user << 'EOF'
+#! /bin/bash
+kill_proc(){
+local username=$1
+PIDS_STRING=$(ps -C dropbear | grep dropbear | awk '{print $1}');
+PID_ARRAY=($PIDS_STRING);
+declare -A USERS
+for i in ${PID_ARRAY[@]}
+do
+	LINE=$(grep -a "\\[$i\\]" /var/log/auth.log | awk '/Password auth succeeded for/{print}')
+	TMP_USER=$(echo "$LINE" | awk '{print $10}')
+	if [[ ! -z $TMP_USER ]]
+	then
+		#remove single cotation from user name and put to users array
+		USERS["$i"]="${TMP_USER//[^a-zA-Z0-9_]/''}"
+	fi
+	
+done
+PIDS_STRING="${!USERS[*]}"
+SORTED_PIDS=($(echo -e "${PIDS_STRING//' '/'\n'}" | sort -n))
+#echo "SORTED_PIDS = " "${SORTED_PIDS[@]}"
+for PID in ${SORTED_PIDS[@]}
+do
+	#echo "current pid = $PID"
+	usr=${USERS[$PID]}
+	if [[ "$usr" == "$username" ]]
+	then
+		kill $PID
+		unset USERS[$PID]
+	fi
+	
+done
+}
+lock_user(){
+USERNAME=$1
+if [[ "$USERNAME" == "root" ]]; then
+	return 1
+fi
+sudo usermod -L $USERNAME
+XRAY_COUNT=$(/usr/local/bin/xray-user-manager -lock "$USERNAME")
+if [[ $XRAY_COUNT -gt 0 ]]; then
+systemctl restart xray;
+fi
+kill_proc "$USERNAME"
+}
+
+lock_user "$1"
+
+EOF
+}
+
+install_unlock_user_script(){
+cat > /usr/local/bin/unlock_user << 'EOF'
+#! /bin/bash
+unlock_user(){
+USERNAME=$1
+if [[ "$USERNAME" == "root" ]]; then
+	return 1
+fi
+sudo usermod -U $USERNAME
+XRAY_COUNT=$(/usr/local/bin/xray-user-manager -unlock "$USERNAME")
+if [[ $XRAY_COUNT -gt 0 ]]; then
+systemctl restart xray;
+fi
+
+}
+unlock_user "$1"
+EOF
+}
+
 apt update
 apt upgrade -y
 timedatectl set-timezone Asia/Tehran
@@ -156,6 +263,7 @@ apt install dante-server -y
 apt install nginx -y
 apt install snapd -y
 snap install --classic certbot
+ln -s /snap/bin/certbot /usr/bin/certbot
 apt install openjdk-17-jre-headless -y
 install_smartws
 install_xray_usermanage
@@ -212,13 +320,13 @@ if ! crontab -l | grep "@reboot bash /usr/local/bin/startup.sh"
 then
 	(crontab -l ; echo "@reboot bash /usr/local/bin/startup.sh") | crontab -
 fi
-if ! crontab -l | grep "0 0 * * * bash /usr/local/bin/acc_expire_check" 
+if ! crontab -l | grep "/usr/local/bin/acc_expire_check" 
 then
-	(crontab -l ; echo "0 0 * * * bash /usr/local/bin/acc_expire_check") | crontab -
+	(crontab -l ; echo "/usr/local/bin/acc_expire_check") | crontab -
 fi
-if ! crontab -l | grep "0 0 * * * bash /usr/local/bin/login_watcher_running_check" 
+if ! crontab -l | grep "/usr/local/bin/login_watcher_running_check" 
 then
-	(crontab -l ; echo "0 0 * * * bash /usr/local/bin/login_watcher_running_check") | crontab -
+	(crontab -l ; echo "15 0 * * * bash /usr/local/bin/login_watcher_running_check") | crontab -
 fi
 
 service cron restart
@@ -250,6 +358,15 @@ systemctl start danted
 wget -O /usr/local/bin/edr "https://raw.githubusercontent.com/smartdevelopers-ir/linux_setups/main/expire_date_reported.sh"
 chmod +x /usr/local/bin/edr
 chmod 755 /usr/local/bin/edr
+# lock_user_script
+install_lock_user_script
+chmod +x /usr/local/bin/lock_user
+chmod 755 /usr/local/bin/lock_user
+# unlock_user_script
+install_unlock_user_script
+chmod +x /usr/local/bin/unlock_user
+chmod 755 /usr/local/bin/unlock_user
+
 #screen -AmdS expire_date_reporter ncat -k -l 127.0.0.1 6161 -c 'bash /usr/local/bin/edr'
 
 # acc_axpire_reporter jar file
